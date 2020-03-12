@@ -5,6 +5,7 @@ import prepare_data
 import pylab
 import solution_basic
 
+
 def inspect_final_data_set_without_labels(image_index_list, seed):
     np.random.seed(seed)
     image_index_array = np.array(image_index_list)
@@ -30,6 +31,7 @@ def inspect_final_data_set_without_labels(image_index_list, seed):
 
     return (true_records_num_list, false_records_num_list)
 
+
 def inspect_final_data_set_with_labels(image_index_list, seed):
     np.random.seed(seed)
 
@@ -54,13 +56,19 @@ def inspect_final_data_set_with_labels(image_index_list, seed):
 
     return ([true_records_num], [false_records_num])
 
+
 def inspect_number_of_occurrences():
     # Get image paths in the training and testing datasets
-    _, training_image_index_list = prepare_data.get_image_paths_in_training_dataset()
+    _, training_image_index_list = prepare_data.get_image_paths_in_training_dataset(
+    )
 
     repeated_num = 20
-    seed_array = np.random.choice(range(repeated_num), size=repeated_num, replace=False)
-    records_list = (Parallel(n_jobs=-1)(delayed(inspect_final_data_set_without_labels)(training_image_index_list, seed) for seed in seed_array))
+    seed_array = np.random.choice(range(repeated_num),
+                                  size=repeated_num,
+                                  replace=False)
+    records_list = (Parallel(n_jobs=-1)(delayed(
+        inspect_final_data_set_without_labels)(training_image_index_list, seed)
+                                        for seed in seed_array))
 
     # repeated_num = 100
     # seed_array = np.random.choice(range(repeated_num), size=repeated_num, replace=False)
@@ -91,32 +99,52 @@ def inspect_number_of_occurrences():
             mean_value_list.append(np.mean(current_list))
 
         pylab.figure()
-        pylab.plot(repeated_times_list, min_value_list, color="yellowgreen", label="Minimum")
-        pylab.plot(repeated_times_list, max_value_list, color="lightskyblue", label="Maximum")
-        pylab.plot(repeated_times_list, mean_value_list, color="darkorange", label="Mean")
-        pylab.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=3, mode="expand", borderaxespad=0.)
+        pylab.plot(repeated_times_list,
+                   min_value_list,
+                   color="yellowgreen",
+                   label="Minimum")
+        pylab.plot(repeated_times_list,
+                   max_value_list,
+                   color="lightskyblue",
+                   label="Maximum")
+        pylab.plot(repeated_times_list,
+                   mean_value_list,
+                   color="darkorange",
+                   label="Mean")
+        pylab.legend(bbox_to_anchor=(0., 1.02, 1., .102),
+                     loc=3,
+                     ncol=3,
+                     mode="expand",
+                     borderaxespad=0.)
         pylab.xlabel("Repeated Times", fontsize="large")
         pylab.ylabel("Number of Occurrences", fontsize="large")
         pylab.grid()
         pylab.show()
 
+
 def inspect_number_of_images():
     # Get image paths in the training and testing datasets
-    _, training_image_index_list = prepare_data.get_image_paths_in_training_dataset()
+    _, training_image_index_list = prepare_data.get_image_paths_in_training_dataset(
+    )
 
     images_number_list = []
     for current_image_index in np.unique(training_image_index_list):
-        images_number_list.append(np.sum(np.array(training_image_index_list) == current_image_index))
+        images_number_list.append(
+            np.sum(np.array(training_image_index_list) == current_image_index))
 
     # the histogram of the data with histtype="step"
-    bins = np.arange(np.min(images_number_list), np.max(images_number_list) + 2) - 0.5
+    bins = np.arange(np.min(images_number_list),
+                     np.max(images_number_list) + 2) - 0.5
     _, _, patches = pylab.hist(images_number_list, bins=bins)
     pylab.setp(patches, "facecolor", "yellowgreen", "alpha", 0.75)
     pylab.xlim([bins[0], bins[-1]])
-    pylab.xticks(np.arange(np.min(images_number_list), np.max(images_number_list) + 1))
+    pylab.xticks(
+        np.arange(np.min(images_number_list),
+                  np.max(images_number_list) + 1))
     pylab.xlabel("Number of Images from the Same Person", fontsize="large")
     pylab.ylabel("Number of Occurrences", fontsize="large")
     pylab.title("Histogram of Number of Images from the Same Person")
     pylab.show()
+
 
 inspect_number_of_occurrences()

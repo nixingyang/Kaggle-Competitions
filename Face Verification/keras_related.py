@@ -8,6 +8,7 @@ import evaluation
 import numpy as np
 import os
 
+
 def init_model(dimension, unique_label_num=2):
     """Init a keras model which could be found in 
         https://github.com/fchollet/keras/blob/master/examples/kaggle_otto_nn.py.
@@ -42,6 +43,7 @@ def init_model(dimension, unique_label_num=2):
 
     model.compile(loss='categorical_crossentropy', optimizer="adam")
     return model
+
 
 class Customized_Callback(Callback):
     """Customized Callback. The code is inspired by the definition of ModelCheckpoint.
@@ -107,6 +109,7 @@ class Customized_Callback(Callback):
 
         return (self.best_score_index, self.best_score)
 
+
 def train_model(X_train, Y_train, X_test, Y_test, model_path, nb_epoch):
     """Training phase.
     
@@ -133,8 +136,15 @@ def train_model(X_train, Y_train, X_test, Y_test, model_path, nb_epoch):
     model = init_model(dimension, unique_label_num)
 
     # Start the training phase
-    customized_callback = Customized_Callback(model_path=model_path, X_test=X_test, Y_test=Y_test)
+    customized_callback = Customized_Callback(model_path=model_path,
+                                              X_test=X_test,
+                                              Y_test=Y_test)
     categorical_Y_train = np_utils.to_categorical(Y_train, unique_label_num)
-    model.fit(X_train, categorical_Y_train, batch_size=32, nb_epoch=nb_epoch, verbose=0, callbacks=[customized_callback])
+    model.fit(X_train,
+              categorical_Y_train,
+              batch_size=32,
+              nb_epoch=nb_epoch,
+              verbose=0,
+              callbacks=[customized_callback])
 
     return customized_callback.inspect_details()

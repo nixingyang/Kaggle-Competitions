@@ -5,7 +5,9 @@ import numpy as np
 import os
 import subprocess
 
-def retrieve_facial_image_by_congealingcomplex(full_image_path, force_continue=True):
+
+def retrieve_facial_image_by_congealingcomplex(full_image_path,
+                                               force_continue=True):
     """Retrieve the facial image by using congealingcomplex.
     
     :param full_image_path: the path of the full image
@@ -45,13 +47,15 @@ def retrieve_facial_image_by_congealingcomplex(full_image_path, force_continue=T
         processed_facial_image = cv2.imread(output_image_path)
 
         # Omit the totally black rows and columns
-        gray_processed_facial_image = cv2.cvtColor(processed_facial_image, cv2.COLOR_BGR2GRAY)
+        gray_processed_facial_image = cv2.cvtColor(processed_facial_image,
+                                                   cv2.COLOR_BGR2GRAY)
         cumsum_in_row = np.cumsum(gray_processed_facial_image, axis=1)
         valid_row_indexes = cumsum_in_row[:, -1] > 0
         cumsum_in_column = np.cumsum(gray_processed_facial_image, axis=0)
         valid_column_indexes = cumsum_in_column[-1, :] > 0
 
-        return processed_facial_image[valid_row_indexes, :, :][:, valid_column_indexes, :]
+        return processed_facial_image[
+            valid_row_indexes, :, :][:, valid_column_indexes, :]
 
     try:
         # Read the coordinates of facial image from the bbox file
@@ -70,11 +74,15 @@ def retrieve_facial_image_by_congealingcomplex(full_image_path, force_continue=T
 
         # Retrieve the original facial image
         full_image = cv2.imread(full_image_path)
-        facial_image = full_image[max(x_start, 0):min(x_end, full_image.shape[0]), max(y_start, 0):min(y_end, full_image.shape[1]), :]
+        facial_image = full_image[
+            max(x_start, 0):min(x_end, full_image.shape[0]),
+            max(y_start, 0):min(y_end, full_image.shape[1]), :]
 
         # Call congealingcomplex and resize it
         facial_image = call_congealingcomplex(facial_image)
-        facial_image = cv2.resize(facial_image, dsize=(common.FACIAL_IMAGE_SIZE, common.FACIAL_IMAGE_SIZE))
+        facial_image = cv2.resize(facial_image,
+                                  dsize=(common.FACIAL_IMAGE_SIZE,
+                                         common.FACIAL_IMAGE_SIZE))
 
         # Successful case
         assert facial_image is not None

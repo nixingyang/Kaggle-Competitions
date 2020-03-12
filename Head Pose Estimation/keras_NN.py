@@ -7,12 +7,14 @@ from keras.utils import np_utils
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 import numpy as np
 
+
 def preprocess_data(X, scaler=None):
     if not scaler:
         scaler = StandardScaler()
         scaler.fit(X)
     X = scaler.transform(X)
     return X, scaler
+
 
 def preprocess_labels(labels, encoder=None, categorical=True):
     if not encoder:
@@ -55,7 +57,8 @@ def generate_prediction(X_train, Y_train, X_test, is_classification, \
 
     print("Perform training phase ...")
     optimal_model_file_path = "/tmp/optimal_model.hdf5"
-    checkpointer = ModelCheckpoint(filepath=optimal_model_file_path, save_best_only=True)
+    checkpointer = ModelCheckpoint(filepath=optimal_model_file_path,
+                                   save_best_only=True)
     if is_classification:
         categorical_Y_train, encoder = preprocess_labels(Y_train)
         model.fit(X_train, categorical_Y_train, batch_size=batch_size, nb_epoch=nb_epoch, \

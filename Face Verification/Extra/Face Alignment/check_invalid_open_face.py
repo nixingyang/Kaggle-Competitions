@@ -7,7 +7,8 @@ facial_image_extension = "_open_face.jpg"
 feature_extension = "_open_face.csv"
 
 # Get image paths in the training and testing datasets
-image_paths_in_training_dataset, training_image_index_list = prepare_data.get_image_paths_in_training_dataset()
+image_paths_in_training_dataset, training_image_index_list = prepare_data.get_image_paths_in_training_dataset(
+)
 
 # Load feature from file
 training_image_feature_list = solution_basic.load_feature_from_file(image_paths_in_training_dataset, \
@@ -18,7 +19,8 @@ feature_file_paths = [image_path + facial_image_extension + feature_extension \
 
 # Omit possible None element in training image feature list
 invalid_feature_file_path_list = []
-for training_image_feature, feature_file_path in zip(training_image_feature_list, feature_file_paths):
+for training_image_feature, feature_file_path in zip(
+        training_image_feature_list, feature_file_paths):
     if training_image_feature is None:
         invalid_feature_file_path_list.append(feature_file_path)
 

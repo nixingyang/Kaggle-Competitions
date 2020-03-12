@@ -10,7 +10,6 @@ import prepare_data
 import pylab
 import pyprind
 import time
-
 """
 cityblock, manhattan -> the same as l1
 mahalanobis -> unable to compute. The number of observations (2) is too small;
@@ -28,7 +27,9 @@ METRIC_LIST = ["cosine", "euclidean", "l1", "l2", "braycurtis", \
 # METRIC_LIST = ["correlation", "l1"]  # "_open_face.csv"
 METRIC_LIST = ["cosine", "sokalsneath"]  # "_vgg_face.csv"
 
-def load_feature_from_file(image_paths, facial_image_extension, feature_extension):
+
+def load_feature_from_file(image_paths, facial_image_extension,
+                           feature_extension):
     """Load feature from file.
     
     :param image_paths: the file paths of the images
@@ -55,6 +56,7 @@ def load_feature_from_file(image_paths, facial_image_extension, feature_extensio
 
     return feature_list
 
+
 def load_feature(facial_image_extension, feature_extension):
     """Load feature.
     
@@ -71,8 +73,10 @@ def load_feature(facial_image_extension, feature_extension):
     print("\nLoading feature ...")
 
     # Get image paths in the training and testing datasets
-    image_paths_in_training_dataset, training_image_index_list = prepare_data.get_image_paths_in_training_dataset()
-    image_paths_in_testing_dataset = prepare_data.get_image_paths_in_testing_dataset()
+    image_paths_in_training_dataset, training_image_index_list = prepare_data.get_image_paths_in_training_dataset(
+    )
+    image_paths_in_testing_dataset = prepare_data.get_image_paths_in_testing_dataset(
+    )
 
     # Load feature from file
     training_image_feature_list = load_feature_from_file(\
@@ -83,19 +87,23 @@ def load_feature(facial_image_extension, feature_extension):
     # Omit possible None element in training image feature list
     valid_training_image_feature_list = []
     valid_training_image_index_list = []
-    for training_image_feature, training_image_index in zip(training_image_feature_list, training_image_index_list):
+    for training_image_feature, training_image_index in zip(
+            training_image_feature_list, training_image_index_list):
         if training_image_feature is not None:
             valid_training_image_feature_list.append(training_image_feature)
             valid_training_image_index_list.append(training_image_index)
 
     # Generate a dictionary to save the testing image feature
     testing_image_feature_dict = {}
-    for testing_image_feature, testing_image_path in zip(testing_image_feature_list, image_paths_in_testing_dataset):
+    for testing_image_feature, testing_image_path in zip(
+            testing_image_feature_list, image_paths_in_testing_dataset):
         testing_image_name = os.path.basename(testing_image_path)
         testing_image_feature_dict[testing_image_name] = testing_image_feature
 
     print("Feature loaded successfully.\n")
-    return (valid_training_image_feature_list, valid_training_image_index_list, testing_image_feature_dict)
+    return (valid_training_image_feature_list, valid_training_image_index_list,
+            testing_image_feature_dict)
+
 
 def get_record_map(index_array, true_false_ratio):
     """Get record map.
@@ -112,9 +120,11 @@ def get_record_map(index_array, true_false_ratio):
     # Generate record_index_pair_array and record_index_pair_label_array
     record_index_pair_list = []
     record_index_pair_label_list = []
-    for record_index_1, record_index_2 in itertools.combinations(range(index_array.size), 2):
+    for record_index_1, record_index_2 in itertools.combinations(
+            range(index_array.size), 2):
         record_index_pair_list.append((record_index_1, record_index_2))
-        record_index_pair_label_list.append(index_array[record_index_1] == index_array[record_index_2])
+        record_index_pair_label_list.append(
+            index_array[record_index_1] == index_array[record_index_2])
     record_index_pair_array = np.array(record_index_pair_list)
     record_index_pair_label_array = np.array(record_index_pair_label_list)
 
@@ -127,8 +137,11 @@ def get_record_map(index_array, true_false_ratio):
     pair_label_false_indexes = np.where(~record_index_pair_label_array)[0]
     selected_pair_label_false_indexes = np.random.choice(\
                                                          pair_label_false_indexes, 1.0 * pair_label_true_indexes.size / true_false_ratio, replace=False)
-    selected_pair_label_indexes = np.hstack((pair_label_true_indexes, selected_pair_label_false_indexes))
-    return (record_index_pair_array[selected_pair_label_indexes, :], record_index_pair_label_array[selected_pair_label_indexes])
+    selected_pair_label_indexes = np.hstack(
+        (pair_label_true_indexes, selected_pair_label_false_indexes))
+    return (record_index_pair_array[selected_pair_label_indexes, :],
+            record_index_pair_label_array[selected_pair_label_indexes])
+
 
 def get_final_feature(feature_1, feature_2):
     """Get the difference between two features.
@@ -147,7 +160,9 @@ def get_final_feature(feature_1, feature_2):
     final_feature_list = []
     for metric in METRIC_LIST:
         try:
-            distance_matrix = pairwise_distances(np.vstack((feature_1, feature_2)), metric=metric)
+            distance_matrix = pairwise_distances(np.vstack(
+                (feature_1, feature_2)),
+                                                 metric=metric)
             # assert distance_matrix[0, 1] == distance_matrix[1, 0]
             final_feature_list.append(distance_matrix[0, 1])
         except:
@@ -155,7 +170,9 @@ def get_final_feature(feature_1, feature_2):
 
     return np.array(final_feature_list)
 
-def convert_to_final_data_set(image_feature_list, image_index_list, selected_indexes, true_false_ratio):
+
+def convert_to_final_data_set(image_feature_list, image_index_list,
+                              selected_indexes, true_false_ratio):
     """Convert to final data set.
     
     :param image_feature_list: the features of the images
@@ -176,15 +193,19 @@ def convert_to_final_data_set(image_feature_list, image_index_list, selected_ind
     selected_index_array = np.array(image_index_list)[selected_indexes]
 
     # Get record map
-    pair_array, pair_label_array = get_record_map(selected_index_array, true_false_ratio)
+    pair_array, pair_label_array = get_record_map(selected_index_array,
+                                                  true_false_ratio)
 
     # Retrieve the final feature
     final_feature_list = []
     for single_pair in pair_array:
-        final_feature = get_final_feature(selected_feature_array[single_pair[0], :], selected_feature_array[single_pair[1], :])
+        final_feature = get_final_feature(
+            selected_feature_array[single_pair[0], :],
+            selected_feature_array[single_pair[1], :])
         final_feature_list.append(final_feature)
 
     return (np.array(final_feature_list), pair_label_array)
+
 
 def write_prediction(testing_file_content, prediction, prediction_file_name):
     """Write prediction file to disk.
@@ -199,11 +220,19 @@ def write_prediction(testing_file_content, prediction, prediction_file_name):
     :rtype: None
     """
 
-    prediction_file_path = os.path.join(common.SUBMISSIONS_FOLDER_PATH, prediction_file_name)
-    prediction_file_content = pd.DataFrame({"Id": testing_file_content[:, 0], "Prediction": prediction})
-    prediction_file_content.to_csv(prediction_file_path, index=False, header=True)
+    prediction_file_path = os.path.join(common.SUBMISSIONS_FOLDER_PATH,
+                                        prediction_file_name)
+    prediction_file_content = pd.DataFrame({
+        "Id": testing_file_content[:, 0],
+        "Prediction": prediction
+    })
+    prediction_file_content.to_csv(prediction_file_path,
+                                   index=False,
+                                   header=True)
 
-def generate_prediction(classifier, testing_file_content, testing_image_feature_dict, prediction_file_prefix):
+
+def generate_prediction(classifier, testing_file_content,
+                        testing_image_feature_dict, prediction_file_prefix):
     """Generate prediction.
     
     :param classifier: the classifier
@@ -242,16 +271,24 @@ def generate_prediction(classifier, testing_file_content, testing_image_feature_
     print(progress_bar)
 
     # Write prediction
-    prediction_file_name = prediction_file_prefix + str(int(time.time())) + ".csv"
-    write_prediction(testing_file_content, np.array(prediction_list), prediction_file_name)
+    prediction_file_name = prediction_file_prefix + str(int(
+        time.time())) + ".csv"
+    write_prediction(testing_file_content, np.array(prediction_list),
+                     prediction_file_name)
 
-def get_feature_importances(image_feature_list, image_index_list, selected_indexes, true_false_ratio, seed):
+
+def get_feature_importances(image_feature_list, image_index_list,
+                            selected_indexes, true_false_ratio, seed):
     np.random.seed(seed)
 
-    X_train, Y_train = convert_to_final_data_set(image_feature_list, image_index_list, selected_indexes, true_false_ratio)
+    X_train, Y_train = convert_to_final_data_set(image_feature_list,
+                                                 image_index_list,
+                                                 selected_indexes,
+                                                 true_false_ratio)
     classifier = RandomForestClassifier()
     classifier.fit(X_train, Y_train)
     return classifier.feature_importances_
+
 
 def make_prediction(facial_image_extension, feature_extension):
     """Make prediction.
@@ -266,7 +303,9 @@ def make_prediction(facial_image_extension, feature_extension):
 
     selected_facial_image = os.path.splitext(facial_image_extension)[0][1:]
     selected_feature = os.path.splitext(feature_extension)[0][1:]
-    print("Making prediction by using facial image \"{}\" with feature \"{}\" ...".format(selected_facial_image, selected_feature))
+    print(
+        "Making prediction by using facial image \"{}\" with feature \"{}\" ..."
+        .format(selected_facial_image, selected_feature))
 
     # Load feature
     training_image_feature_list, training_image_index_list, _ = \
@@ -278,47 +317,64 @@ def make_prediction(facial_image_extension, feature_extension):
     true_false_ratio = 1
 
     repeated_num = 60
-    seed_array = np.random.choice(range(repeated_num), size=repeated_num, replace=False)
-    feature_importances_list = (Parallel(n_jobs=-1)(delayed(get_feature_importances)(image_feature_list, image_index_list, selected_indexes, true_false_ratio, seed) for seed in seed_array))
+    seed_array = np.random.choice(range(repeated_num),
+                                  size=repeated_num,
+                                  replace=False)
+    feature_importances_list = (Parallel(n_jobs=-1)(delayed(
+        get_feature_importances)(image_feature_list, image_index_list,
+                                 selected_indexes, true_false_ratio, seed)
+                                                    for seed in seed_array))
 
     feature_importances_array = np.array(feature_importances_list)
     np.save("Default.npy", feature_importances_array)
+
 
 def analysis():
     feature_importances_array = np.load("Default_AlexNet.npy")
     mean_feature_importances = np.mean(feature_importances_array, axis=0)
 
-    for feature_importance, metric in zip(mean_feature_importances, METRIC_LIST):
+    for feature_importance, metric in zip(mean_feature_importances,
+                                          METRIC_LIST):
         print("{}\t{}".format(metric, feature_importance))
 
     time_indexes = np.arange(1, feature_importances_array.shape[0] + 1)
     feature_importances_cumsum = np.cumsum(feature_importances_array, axis=0)
     feature_importances_mean = feature_importances_cumsum
     for column_index in range(feature_importances_mean.shape[1]):
-        feature_importances_mean[:, column_index] = feature_importances_cumsum[:, column_index] / time_indexes
+        feature_importances_mean[:,
+                                 column_index] = feature_importances_cumsum[:,
+                                                                            column_index] / time_indexes
 
     index_ranks = np.flipud(np.argsort(mean_feature_importances))
 
     chosen_records = np.cumsum(mean_feature_importances[index_ranks]) <= 0.95
     chosen_index_ranks = index_ranks[chosen_records]
 
-    sorted_mean_feature_importances = mean_feature_importances[chosen_index_ranks]
+    sorted_mean_feature_importances = mean_feature_importances[
+        chosen_index_ranks]
     sorted_metric_list = np.array(METRIC_LIST)[chosen_index_ranks]
 
     remaining = np.sum(mean_feature_importances[index_ranks[~chosen_records]])
     print("remaining is {:.4f}.".format(remaining))
-    sorted_mean_feature_importances = np.hstack((sorted_mean_feature_importances, remaining))
+    sorted_mean_feature_importances = np.hstack(
+        (sorted_mean_feature_importances, remaining))
     sorted_metric_list = np.hstack((sorted_metric_list, 'others'))
 
-    pylab.pie(sorted_mean_feature_importances, labels=sorted_metric_list, autopct='%1.1f%%', startangle=0)
+    pylab.pie(sorted_mean_feature_importances,
+              labels=sorted_metric_list,
+              autopct='%1.1f%%',
+              startangle=0)
     pylab.axis('equal')
     pylab.set_cmap('plasma')
     pylab.show()
 
+
 def illustrate(facial_image_extension, feature_extension):
     selected_facial_image = os.path.splitext(facial_image_extension)[0][1:]
     selected_feature = os.path.splitext(feature_extension)[0][1:]
-    print("Making prediction by using facial image \"{}\" with feature \"{}\" ...".format(selected_facial_image, selected_feature))
+    print(
+        "Making prediction by using facial image \"{}\" with feature \"{}\" ..."
+        .format(selected_facial_image, selected_feature))
 
     # Load feature
     training_image_feature_list, training_image_index_list, _ = \
@@ -327,12 +383,22 @@ def illustrate(facial_image_extension, feature_extension):
     # Generate training data
     np.random.seed(0)
 
-    X_train, Y_train = convert_to_final_data_set(training_image_feature_list, training_image_index_list, range(len(training_image_feature_list)), 1)
+    X_train, Y_train = convert_to_final_data_set(
+        training_image_feature_list, training_image_index_list,
+        range(len(training_image_feature_list)), 1)
     true_records = Y_train == 1
 
     pylab.figure()
-    pylab.plot(X_train[true_records, 0], X_train[true_records, 1], '.', color='yellowgreen' , label="True cases")
-    pylab.plot(X_train[~true_records, 0], X_train[~true_records, 1], '.', color='lightskyblue' , label="False cases")
+    pylab.plot(X_train[true_records, 0],
+               X_train[true_records, 1],
+               '.',
+               color='yellowgreen',
+               label="True cases")
+    pylab.plot(X_train[~true_records, 0],
+               X_train[~true_records, 1],
+               '.',
+               color='lightskyblue',
+               label="False cases")
     pylab.xlabel(METRIC_LIST[0], fontsize="large")
     pylab.ylabel(METRIC_LIST[1], fontsize="large")
     # pylab.title("Top 2 distance metrics of AlexNet Feature")
@@ -341,12 +407,14 @@ def illustrate(facial_image_extension, feature_extension):
     pylab.legend(loc=2)
     pylab.show()
 
+
 def run():
     # illustrate("_deep", "features.csv")
     # illustrate("_open_face.jpg", "_open_face.csv")
     illustrate("_bbox.jpg", "_vgg_face.csv")
 
     print("All done!")
+
 
 if __name__ == "__main__":
     run()

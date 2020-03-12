@@ -9,6 +9,7 @@ import prepare_data
 import pylab
 import time
 
+
 def get_ranks(input_array):
     """Get the ranks of the elements in an array.
     
@@ -21,6 +22,7 @@ def get_ranks(input_array):
     order = input_array.argsort()
     ranks = order.argsort()
     return ranks
+
 
 def compute_MCC(y_true, y_score, threshold_num=500):
     """Compute the Matthews Correlation Coefficient.
@@ -39,7 +41,9 @@ def compute_MCC(y_true, y_score, threshold_num=500):
     ranks = get_ranks(y_score)
 
     # Generate the array which contains the value of thresholds
-    threshold_array = np.linspace(np.min(ranks) - 1, np.max(ranks) + 1, num=threshold_num)
+    threshold_array = np.linspace(np.min(ranks) - 1,
+                                  np.max(ranks) + 1,
+                                  num=threshold_num)
 
     # Generate MCC values
     MCC_list = []
@@ -53,6 +57,7 @@ def compute_MCC(y_true, y_score, threshold_num=500):
     # pylab.show()
 
     return np.max(MCC_array)
+
 
 def perform_interpolation(x_array, y_array, threshold_array):
     """Perform interpolation on the ROC curve.
@@ -86,7 +91,10 @@ def perform_interpolation(x_array, y_array, threshold_array):
 
     return (x_array, y_array)
 
-def compute_Weighted_AUC(y_true, y_score, weight_distribution=np.arange(4, -1, -1.0)):
+
+def compute_Weighted_AUC(y_true,
+                         y_score,
+                         weight_distribution=np.arange(4, -1, -1.0)):
     """Compute the Weighted AUC score.
     
     :param y_true: true binary labels in range {0, 1}
@@ -134,7 +142,8 @@ def compute_Weighted_AUC(y_true, y_score, weight_distribution=np.arange(4, -1, -
 
         # Extend the curve to the range [0, 1]
         selected_fpr = np.hstack(([0], selected_fpr, [1]))
-        selected_tpr = np.hstack((selected_tpr[0], selected_tpr, selected_tpr[-1]))
+        selected_tpr = np.hstack(
+            (selected_tpr[0], selected_tpr, selected_tpr[-1]))
 
         # Plot selected ROC curve
         # pylab.figure()
@@ -156,6 +165,7 @@ def compute_Weighted_AUC(y_true, y_score, weight_distribution=np.arange(4, -1, -
     weight_distribution = weight_distribution / np.mean(weight_distribution)
     return np.sum(np.multiply(area_array, weight_distribution))
 
+
 def compute_tpr_with_fpr(y_true, y_score, chosen_fpr=1e-2):
     """Compute the tpr value with the given fpr value.
     
@@ -176,17 +186,21 @@ def compute_tpr_with_fpr(y_true, y_score, chosen_fpr=1e-2):
     # Find the right record
     return tpr[np.argwhere(fpr == chosen_fpr)[0][0]]
 
+
 def perform_evaluation():
     """Perform evaluation on the submission files."""
 
     # Read GroundTruth file
-    groundtruth_file_path = os.path.join(common.SUBMISSIONS_FOLDER_PATH, common.GROUNDTRUTH_FILE_NAME)
-    groundtruth_file_content = pd.read_csv(groundtruth_file_path, skiprows=0).as_matrix()
+    groundtruth_file_path = os.path.join(common.SUBMISSIONS_FOLDER_PATH,
+                                         common.GROUNDTRUTH_FILE_NAME)
+    groundtruth_file_content = pd.read_csv(groundtruth_file_path,
+                                           skiprows=0).as_matrix()
     groundtruth_label = groundtruth_file_content[:, 1]
     groundtruth_label = groundtruth_label.astype(np.float64)
 
     # List all csv files in current folder and evaluate them
-    submission_file_path_list = glob.glob(os.path.join(common.SUBMISSIONS_FOLDER_PATH, "*.csv"))
+    submission_file_path_list = glob.glob(
+        os.path.join(common.SUBMISSIONS_FOLDER_PATH, "*.csv"))
     submission_file_path_list = sorted(submission_file_path_list)
     submission_file_name_list = []
     score_list = []
@@ -195,7 +209,8 @@ def perform_evaluation():
             continue
 
         # Read current submission file
-        submission_file_content = pd.read_csv(submission_file_path, skiprows=0).as_matrix()
+        submission_file_content = pd.read_csv(submission_file_path,
+                                              skiprows=0).as_matrix()
         submission_label = submission_file_content[:, 1]
 
         # Compute Weighted AUC or MCC of current submission file
@@ -217,6 +232,7 @@ def perform_evaluation():
         print("{}\t{:.4f}\t{:d}".format(np.array(submission_file_name_list)[flag][0], \
                                         np.array(score_list)[flag][0], current_index + 1))
 
+
 def combine_submissions():
     """Combine submissions.
     
@@ -224,8 +240,14 @@ def combine_submissions():
     :rtype: None
     """
 
-    facial_image_extension_list = [os.path.splitext(item)[0][1:] for item in prepare_data.FACIAL_IMAGE_EXTENSION_LIST]
-    feature_extension_list = [os.path.splitext(item)[0][1:] for item in prepare_data.FEATURE_EXTENSION_LIST]
+    facial_image_extension_list = [
+        os.path.splitext(item)[0][1:]
+        for item in prepare_data.FACIAL_IMAGE_EXTENSION_LIST
+    ]
+    feature_extension_list = [
+        os.path.splitext(item)[0][1:]
+        for item in prepare_data.FEATURE_EXTENSION_LIST
+    ]
     classifier_name_list = ["keras", "sklearn"]
 
     for facial_image_extension, feature_extension, classifier_name in \
@@ -237,23 +259,31 @@ def combine_submissions():
 
         # Read the submission files
         submission_label_list = []
-        submission_file_path_list = glob.glob(os.path.join(common.SUBMISSIONS_FOLDER_PATH, submission_file_name_rule))
+        submission_file_path_list = glob.glob(
+            os.path.join(common.SUBMISSIONS_FOLDER_PATH,
+                         submission_file_name_rule))
         for submission_file_path in submission_file_path_list:
-            submission_file_content = pd.read_csv(submission_file_path, skiprows=0)
+            submission_file_content = pd.read_csv(submission_file_path,
+                                                  skiprows=0)
             submission_label = submission_file_content["Prediction"].as_matrix()
             submission_label_list.append(submission_label)
 
         # Generate the mean submission file
-        submission_file_content["Prediction"] = np.mean(submission_label_list, axis=0)
-        submission_file_path = os.path.join(common.SUBMISSIONS_FOLDER_PATH,
-                                            prediction_file_prefix + "_mean_" + str(int(time.time())) + ".csv")
+        submission_file_content["Prediction"] = np.mean(submission_label_list,
+                                                        axis=0)
+        submission_file_path = os.path.join(
+            common.SUBMISSIONS_FOLDER_PATH,
+            prediction_file_prefix + "_mean_" + str(int(time.time())) + ".csv")
         submission_file_content.to_csv(submission_file_path, index=False)
 
         # Generate the median submission file
-        submission_file_content["Prediction"] = np.median(submission_label_list, axis=0)
-        submission_file_path = os.path.join(common.SUBMISSIONS_FOLDER_PATH,
-                                            prediction_file_prefix + "_median_" + str(int(time.time())) + ".csv")
+        submission_file_content["Prediction"] = np.median(submission_label_list,
+                                                          axis=0)
+        submission_file_path = os.path.join(
+            common.SUBMISSIONS_FOLDER_PATH, prediction_file_prefix +
+            "_median_" + str(int(time.time())) + ".csv")
         submission_file_content.to_csv(submission_file_path, index=False)
+
 
 if __name__ == "__main__":
     # combine_submissions()

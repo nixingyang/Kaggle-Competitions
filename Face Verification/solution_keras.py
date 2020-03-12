@@ -12,14 +12,16 @@ import solution_basic
 import time
 
 METRIC_LIST_DICT = {
-    "_open_face.csv":["correlation", "l1", "euclidean", "braycurtis", "sqeuclidean", \
+    "_open_face.csv": ["correlation", "l1", "euclidean", "braycurtis", "sqeuclidean", \
                     "cosine", "minkowski", "l2", "canberra", "chebyshev"], \
-    "_vgg_face.csv":["cosine", "sokalsneath", "dice", "braycurtis", "kulsinski", \
+    "_vgg_face.csv": ["cosine", "sokalsneath", "dice", "braycurtis", "kulsinski", \
                     "correlation", "russellrao", "matching", "sokalmichener", "rogerstanimoto"]}
 
-NB_EPOCH_DICT = {"_open_face.csv":5, "_vgg_face.csv":5}
+NB_EPOCH_DICT = {"_open_face.csv": 5, "_vgg_face.csv": 5}
 
-def perform_training(image_feature_list, image_index_list, description, feature_extension, nb_epoch):
+
+def perform_training(image_feature_list, image_index_list, description,
+                     feature_extension, nb_epoch):
     """Perform training phase.
     
     :param image_feature_list: the features of the images
@@ -53,20 +55,28 @@ def perform_training(image_feature_list, image_index_list, description, feature_
 
     metric_list = METRIC_LIST_DICT[feature_extension]
     for fold_index, fold_item in enumerate(label_kfold):
-        print("\nWorking on the {:d}/{:d} fold ...".format(fold_index + 1, fold_num))
+        print("\nWorking on the {:d}/{:d} fold ...".format(
+            fold_index + 1, fold_num))
 
         # Generate final data set
-        X_train, Y_train = solution_basic.convert_to_final_data_set(image_feature_list, image_index_list, fold_item[0], 1, metric_list)
-        X_test, Y_test = solution_basic.convert_to_final_data_set(image_feature_list, image_index_list, fold_item[1], None, metric_list)
+        X_train, Y_train = solution_basic.convert_to_final_data_set(
+            image_feature_list, image_index_list, fold_item[0], 1, metric_list)
+        X_test, Y_test = solution_basic.convert_to_final_data_set(
+            image_feature_list, image_index_list, fold_item[1], None,
+            metric_list)
 
         # Perform training
-        model_name = "Model_{:d}".format(fold_index + 1) + common.KERAS_MODEL_EXTENSION
+        model_name = "Model_{:d}".format(fold_index +
+                                         1) + common.KERAS_MODEL_EXTENSION
         model_path = os.path.join(working_directory, model_name)
-        best_score_index, best_score = keras_related.train_model(X_train, Y_train, X_test, Y_test, model_path, nb_epoch)
+        best_score_index, best_score = keras_related.train_model(
+            X_train, Y_train, X_test, Y_test, model_path, nb_epoch)
         best_score_array[fold_index] = best_score
         best_score_index_array[fold_index] = best_score_index
 
-        print("For the {:d} fold, the Keras model achieved the score {:.4f} at the {:d} epoch.".format(fold_index + 1, best_score, best_score_index))
+        print(
+            "For the {:d} fold, the Keras model achieved the score {:.4f} at the {:d} epoch."
+            .format(fold_index + 1, best_score, best_score_index))
 
         # Update progress bar
         progress_bar.update()
@@ -74,9 +84,14 @@ def perform_training(image_feature_list, image_index_list, description, feature_
     # Report tracking information
     print(progress_bar)
 
-    print("\nThe best score is {:.4f} and the highest epoch is {:d}.".format(np.max(best_score_array), np.max(best_score_index_array).astype(np.int)))
+    print("\nThe best score is {:.4f} and the highest epoch is {:d}.".format(
+        np.max(best_score_array),
+        np.max(best_score_index_array).astype(np.int)))
 
-def generate_prediction(description, testing_file_content, testing_image_feature_dict, prediction_file_prefix, feature_extension):
+
+def generate_prediction(description, testing_file_content,
+                        testing_image_feature_dict, prediction_file_prefix,
+                        feature_extension):
     """Generate prediction.
     
     :param description: the folder name of the working directory
@@ -96,30 +111,36 @@ def generate_prediction(description, testing_file_content, testing_image_feature
     print("\nGenerating prediction ...")
 
     working_directory = common.get_working_directory(description)
-    model_path_rule = os.path.join(working_directory, "*" + common.KERAS_MODEL_EXTENSION)
+    model_path_rule = os.path.join(working_directory,
+                                   "*" + common.KERAS_MODEL_EXTENSION)
     metric_list = METRIC_LIST_DICT[feature_extension]
     for model_path in sorted(glob.glob(model_path_rule)):
         model_name = os.path.basename(os.path.splitext(model_path)[0])
         print("\nWorking on {} ...".format(model_name))
 
         # Init a keras model with specific weights
-        final_feature = solution_basic.get_final_feature(testing_image_feature_dict.values()[0], testing_image_feature_dict.values()[0], metric_list)
+        final_feature = solution_basic.get_final_feature(
+            testing_image_feature_dict.values()[0],
+            testing_image_feature_dict.values()[0], metric_list)
         dimension = final_feature.size
         model = keras_related.init_model(dimension)
         model.load_weights(model_path)
 
         # Add progress bar
-        progress_bar = pyprind.ProgBar(testing_file_content.shape[0], monitor=True)
+        progress_bar = pyprind.ProgBar(testing_file_content.shape[0],
+                                       monitor=True)
 
         # Generate prediction
         prediction_list = []
         for _, file_1_name, file_2_name in testing_file_content:
             file_1_feature = testing_image_feature_dict[file_1_name]
             file_2_feature = testing_image_feature_dict[file_2_name]
-            final_feature = solution_basic.get_final_feature(file_1_feature, file_2_feature, metric_list)
+            final_feature = solution_basic.get_final_feature(
+                file_1_feature, file_2_feature, metric_list)
             final_feature = final_feature.reshape(1, -1)
 
-            probability_estimates = model.predict_proba(final_feature, verbose=0)
+            probability_estimates = model.predict_proba(final_feature,
+                                                        verbose=0)
             prediction = probability_estimates[0, 1]
             prediction_list.append(prediction)
 
@@ -130,8 +151,12 @@ def generate_prediction(description, testing_file_content, testing_image_feature
         print(progress_bar)
 
         # Write prediction
-        prediction_file_name = prediction_file_prefix + model_name + "_" + str(int(time.time())) + ".csv"
-        solution_basic.write_prediction(testing_file_content, np.array(prediction_list), prediction_file_name)
+        prediction_file_name = prediction_file_prefix + model_name + "_" + str(
+            int(time.time())) + ".csv"
+        solution_basic.write_prediction(testing_file_content,
+                                        np.array(prediction_list),
+                                        prediction_file_name)
+
 
 def make_prediction(facial_image_extension, feature_extension):
     """Make prediction.
@@ -146,7 +171,9 @@ def make_prediction(facial_image_extension, feature_extension):
 
     selected_facial_image = os.path.splitext(facial_image_extension)[0][1:]
     selected_feature = os.path.splitext(feature_extension)[0][1:]
-    print("Making prediction by using facial image \"{}\" with feature \"{}\" ...".format(selected_facial_image, selected_feature))
+    print(
+        "Making prediction by using facial image \"{}\" with feature \"{}\" ..."
+        .format(selected_facial_image, selected_feature))
 
     # Load feature
     training_image_feature_list, training_image_index_list, testing_image_feature_dict = \
@@ -155,7 +182,8 @@ def make_prediction(facial_image_extension, feature_extension):
     # Perform training
     description = selected_facial_image + " with " + selected_feature + " using keras"
     nb_epoch = NB_EPOCH_DICT[feature_extension]
-    perform_training(training_image_feature_list, training_image_index_list, description, feature_extension, nb_epoch)
+    perform_training(training_image_feature_list, training_image_index_list,
+                     description, feature_extension, nb_epoch)
 
     # Load testing file
     testing_file_path = os.path.join(common.DATA_PATH, common.TESTING_FILE_NAME)
@@ -164,7 +192,10 @@ def make_prediction(facial_image_extension, feature_extension):
 
     # Generate prediction
     prediction_file_prefix = "Aurora_" + selected_facial_image + "_" + selected_feature + "_keras_"
-    generate_prediction(description, testing_file_content, testing_image_feature_dict, prediction_file_prefix, feature_extension)
+    generate_prediction(description, testing_file_content,
+                        testing_image_feature_dict, prediction_file_prefix,
+                        feature_extension)
+
 
 def run():
     # Crop out facial images and retrieve features. Ideally, one only need to call this function once.
@@ -176,6 +207,7 @@ def run():
         make_prediction(facial_image_extension, feature_extension)
 
     print("All done!")
+
 
 if __name__ == "__main__":
     run()

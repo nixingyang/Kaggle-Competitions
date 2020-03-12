@@ -8,18 +8,22 @@ ID_COLUMN_NAME = "customer_id"
 LABEL_COLUMN_NAME = "target"
 LABEL_COLUMN_NAME_IN_SUBMISSION = LABEL_COLUMN_NAME
 
+
 def perform_categorization(column_vector):
     encoder = LabelEncoder()
     return encoder.fit_transform(column_vector).astype(np.int)
+
 
 def load_data():
     # Read file content
     training_file_content = pd.read_csv(TRAINING_FILE_PATH)
     testing_file_content = pd.read_csv(TESTING_FILE_PATH)
-    combined_file_content = pd.concat([training_file_content, testing_file_content])
+    combined_file_content = pd.concat(
+        [training_file_content, testing_file_content])
 
     # Manipulate file content
-    X = combined_file_content.drop([ID_COLUMN_NAME, LABEL_COLUMN_NAME], axis=1).as_matrix()
+    X = combined_file_content.drop([ID_COLUMN_NAME, LABEL_COLUMN_NAME],
+                                   axis=1).as_matrix()
     categorical_features_mask_list = []
     for column_vector in X.T:
         valid_elements_mask = np.logical_not(pd.isnull(column_vector))
@@ -45,6 +49,10 @@ def load_data():
 
     return X_train, Y_train, X_test, ID_test
 
+
 def write_submission(ID_test, prediction, submission_file_path):
-    submission_file_content = pd.DataFrame({ID_COLUMN_NAME:ID_test, LABEL_COLUMN_NAME_IN_SUBMISSION:prediction})
+    submission_file_content = pd.DataFrame({
+        ID_COLUMN_NAME: ID_test,
+        LABEL_COLUMN_NAME_IN_SUBMISSION: prediction
+    })
     submission_file_content.to_csv(submission_file_path, index=False)

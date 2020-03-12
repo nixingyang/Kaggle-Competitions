@@ -8,23 +8,31 @@ ID_COLUMN_NAME = "PassengerId"
 LABEL_COLUMN_NAME = "Survived"
 LABEL_COLUMN_NAME_IN_SUBMISSION = LABEL_COLUMN_NAME
 
+
 def perform_categorization(column_vector):
     encoder = LabelEncoder()
     return encoder.fit_transform(column_vector).astype(np.int)
+
 
 def load_data():
     # Read file content
     training_file_content = pd.read_csv(TRAINING_FILE_PATH)
     testing_file_content = pd.read_csv(TESTING_FILE_PATH)
-    combined_file_content = pd.concat([training_file_content, testing_file_content])
+    combined_file_content = pd.concat(
+        [training_file_content, testing_file_content])
 
     # Feature engineering
     combined_file_content.drop(["Ticket", "Name"], axis=1, inplace=True)
-    valid_elements_mask = np.logical_not(pd.isnull(combined_file_content["Cabin"].as_matrix()))
-    combined_file_content.loc[valid_elements_mask, "Cabin"] = [item[0] for item in combined_file_content["Cabin"].as_matrix()[valid_elements_mask]]
+    valid_elements_mask = np.logical_not(
+        pd.isnull(combined_file_content["Cabin"].as_matrix()))
+    combined_file_content.loc[valid_elements_mask, "Cabin"] = [
+        item[0] for item in combined_file_content["Cabin"].as_matrix()
+        [valid_elements_mask]
+    ]
 
     # Manipulate file content
-    X = combined_file_content.drop([ID_COLUMN_NAME, LABEL_COLUMN_NAME], axis=1).as_matrix()
+    X = combined_file_content.drop([ID_COLUMN_NAME, LABEL_COLUMN_NAME],
+                                   axis=1).as_matrix()
     categorical_features_mask_list = []
     for column_vector in X.T:
         valid_elements_mask = np.logical_not(pd.isnull(column_vector))
@@ -50,6 +58,10 @@ def load_data():
 
     return X_train, Y_train, X_test, ID_test
 
+
 def write_submission(ID_test, prediction, submission_file_path):
-    submission_file_content = pd.DataFrame({ID_COLUMN_NAME:ID_test, LABEL_COLUMN_NAME_IN_SUBMISSION:prediction})
+    submission_file_content = pd.DataFrame({
+        ID_COLUMN_NAME: ID_test,
+        LABEL_COLUMN_NAME_IN_SUBMISSION: prediction
+    })
     submission_file_content.to_csv(submission_file_path, index=False)

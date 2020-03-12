@@ -18,21 +18,26 @@ TESTING_FILE_NAME = "test.csv"
 IMAGE_EXTENSION = ".jpg"
 FEATURE_EXTENSION = "_LBP.csv"
 
+
 def load_image_path_list():
-    training_image_path_rule = os.path.join(DATASET_PATH, TRAINING_FOLDER_NAME, "*" + IMAGE_EXTENSION)
-    testing_image_path_rule = os.path.join(DATASET_PATH, TESTING_FOLDER_NAME, "*" + IMAGE_EXTENSION)
+    training_image_path_rule = os.path.join(DATASET_PATH, TRAINING_FOLDER_NAME,
+                                            "*" + IMAGE_EXTENSION)
+    testing_image_path_rule = os.path.join(DATASET_PATH, TESTING_FOLDER_NAME,
+                                           "*" + IMAGE_EXTENSION)
 
     training_image_path_list = glob.glob(training_image_path_rule)
     testing_image_path_list = glob.glob(testing_image_path_rule)
 
     return (training_image_path_list, testing_image_path_list)
 
+
 def retrieve_LBP_feature_histogram(image_path):
     try:
         # Read feature directly from file
         image_feature_path = image_path + FEATURE_EXTENSION
         if os.path.isfile(image_feature_path):
-            LBP_feature_histogram = np.genfromtxt(image_feature_path, delimiter=",")
+            LBP_feature_histogram = np.genfromtxt(image_feature_path,
+                                                  delimiter=",")
             return LBP_feature_histogram
 
         # Define LBP parameters
@@ -45,16 +50,22 @@ def retrieve_LBP_feature_histogram(image_path):
         assert os.path.isfile(image_path)
         image_content_in_gray = imread(image_path, as_grey=True)
         image_content_in_gray = img_as_ubyte(image_content_in_gray)
-        LBP_feature = local_binary_pattern(image_content_in_gray, n_points, radius)
-        LBP_feature_histogram, _ = np.histogram(LBP_feature, bins=bins_num, range=LBP_value_range, density=True)
+        LBP_feature = local_binary_pattern(image_content_in_gray, n_points,
+                                           radius)
+        LBP_feature_histogram, _ = np.histogram(LBP_feature,
+                                                bins=bins_num,
+                                                range=LBP_value_range,
+                                                density=True)
 
         # Save feature to file
         assert LBP_feature_histogram is not None
         np.savetxt(image_feature_path, LBP_feature_histogram, delimiter=",")
         return LBP_feature_histogram
     except:
-        print("Unable to retrieve LBP feature histogram in %s." % (os.path.basename(image_path)))
+        print("Unable to retrieve LBP feature histogram in %s." %
+              (os.path.basename(image_path)))
         return None
+
 
 def load_features(image_path_list):
     feature_dict = {}
@@ -65,25 +76,30 @@ def load_features(image_path_list):
 
     return feature_dict
 
+
 def load_csv_files():
     training_file_path = os.path.join(DATASET_PATH, TRAINING_FILE_NAME)
     testing_file_path = os.path.join(DATASET_PATH, TESTING_FILE_NAME)
 
-    training_file_content = pd.read_csv(training_file_path, skiprows=0).as_matrix()
+    training_file_content = pd.read_csv(training_file_path,
+                                        skiprows=0).as_matrix()
     training_names = training_file_content[:, 0]
     training_labels = training_file_content[:, 1]
     training_labels = training_labels.astype(np.uint32)
 
-    testing_file_content = pd.read_csv(testing_file_path, skiprows=0).as_matrix()
+    testing_file_content = pd.read_csv(testing_file_path,
+                                       skiprows=0).as_matrix()
     testing_names = testing_file_content[:, 0]
 
     return (training_names, training_labels, testing_names)
+
 
 def get_attributes(feature_dict, names):
     feature_list = []
     for name in names:
         feature_list.append(feature_dict[name])
     return np.array(feature_list)
+
 
 def run():
     # Load image paths in the dataset
@@ -105,7 +121,8 @@ def run():
     prediction_list = []
     for trial_index in range(11):
         print("Working on trial NO.{:d}".format(trial_index + 1))
-        current_prediction = keras_NN.generate_prediction(X_train, Y_train, X_test)
+        current_prediction = keras_NN.generate_prediction(
+            X_train, Y_train, X_test)
         prediction_list.append(current_prediction)
 
     # Generate ensemble prediction
@@ -114,10 +131,14 @@ def run():
 
     # Create submission file
     submission_file_name = "Aurora_" + str(int(time.time())) + ".csv"
-    file_content = pd.DataFrame({"Id": testing_names, "Prediction": ensemble_prediction})
+    file_content = pd.DataFrame({
+        "Id": testing_names,
+        "Prediction": ensemble_prediction
+    })
     file_content.to_csv(submission_file_name, index=False, header=True)
 
     print("All done!")
+
 
 if __name__ == "__main__":
     run()

@@ -1,6 +1,7 @@
 import numpy as np
 import pylab
 
+
 def plot_all():
     sigmoid_x = np.linspace(-10, 10, num=200)
     sigmoid_y = [1 / (1 + np.exp(-1 * value)) for value in sigmoid_x]
@@ -47,5 +48,6 @@ def plot_all():
     pylab.title("PReLU")
 
     pylab.show()
+
 
 plot_all()

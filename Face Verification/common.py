@@ -38,13 +38,16 @@ SUBMISSIONS_FOLDER_PATH = os.path.join(SCRIPTS_FOLDER_PATH, "Submissions")
 # The file name of the GroundTruth. This file is saved at SUBMISSIONS_FOLDER_PATH.
 GROUNDTRUTH_FILE_NAME = "GroundTruth.csv"
 
+
 def read_from_file(file_path):
     file_content = pd.read_csv(file_path, delimiter=",", engine="c", header=None, \
                                na_filter=False, dtype=np.float64, low_memory=False).as_matrix()
     return np.squeeze(file_content)
 
+
 def write_to_file(file_path, file_content):
     pd.Series(file_content).to_csv(file_path, header=False, index=False)
+
 
 def get_working_directory(description):
     """Get the path of working directory.
@@ -56,6 +59,7 @@ def get_working_directory(description):
     """
 
     return os.path.join("/tmp", description)
+
 
 def reset_working_directory(description):
     """Reset the working directory.

@@ -5,6 +5,7 @@ import evaluation
 import numpy as np
 import os
 
+
 def train_model(X_train, Y_train, X_test, Y_test, model_path):
     """Training phase.
     
@@ -43,7 +44,8 @@ def train_model(X_train, Y_train, X_test, Y_test, model_path):
         probability_estimates = classifier.predict_proba(X_test)
         prediction = probability_estimates[:, 1]
         score = evaluation.compute_Weighted_AUC(Y_test, prediction)
-        print("Classifier {:d} achieved {:.4f}.".format(classifier_index, score))
+        print("Classifier {:d} achieved {:.4f}.".format(classifier_index,
+                                                        score))
 
         if best_score < 0 or score > best_score:
             print("Score improved from {:.4f} to {:.4f}, saving model to {}.".format(\

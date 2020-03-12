@@ -6,7 +6,9 @@ import os
 import pandas as pd
 import prepare_data
 
-def load_feature_from_file(image_paths, facial_image_extension, feature_extension):
+
+def load_feature_from_file(image_paths, facial_image_extension,
+                           feature_extension):
     """Load feature from file.
     
     :param image_paths: the file paths of the images
@@ -33,6 +35,7 @@ def load_feature_from_file(image_paths, facial_image_extension, feature_extensio
 
     return feature_list
 
+
 def load_feature(facial_image_extension, feature_extension):
     """Load feature.
     
@@ -49,8 +52,10 @@ def load_feature(facial_image_extension, feature_extension):
     print("\nLoading feature ...")
 
     # Get image paths in the training and testing datasets
-    image_paths_in_training_dataset, training_image_index_list = prepare_data.get_image_paths_in_training_dataset()
-    image_paths_in_testing_dataset = prepare_data.get_image_paths_in_testing_dataset()
+    image_paths_in_training_dataset, training_image_index_list = prepare_data.get_image_paths_in_training_dataset(
+    )
+    image_paths_in_testing_dataset = prepare_data.get_image_paths_in_testing_dataset(
+    )
 
     # Load feature from file
     training_image_feature_list = load_feature_from_file(image_paths_in_training_dataset, \
@@ -61,19 +66,23 @@ def load_feature(facial_image_extension, feature_extension):
     # Omit possible None element in training image feature list
     valid_training_image_feature_list = []
     valid_training_image_index_list = []
-    for training_image_feature, training_image_index in zip(training_image_feature_list, training_image_index_list):
+    for training_image_feature, training_image_index in zip(
+            training_image_feature_list, training_image_index_list):
         if training_image_feature is not None:
             valid_training_image_feature_list.append(training_image_feature)
             valid_training_image_index_list.append(training_image_index)
 
     # Generate a dictionary to save the testing image feature
     testing_image_feature_dict = {}
-    for testing_image_feature, testing_image_path in zip(testing_image_feature_list, image_paths_in_testing_dataset):
+    for testing_image_feature, testing_image_path in zip(
+            testing_image_feature_list, image_paths_in_testing_dataset):
         testing_image_name = os.path.basename(testing_image_path)
         testing_image_feature_dict[testing_image_name] = testing_image_feature
 
     print("Feature loaded successfully.\n")
-    return (valid_training_image_feature_list, valid_training_image_index_list, testing_image_feature_dict)
+    return (valid_training_image_feature_list, valid_training_image_index_list,
+            testing_image_feature_dict)
+
 
 def get_record_map(index_array, true_false_ratio):
     """Get record map.
@@ -90,9 +99,11 @@ def get_record_map(index_array, true_false_ratio):
     # Generate record_index_pair_array and record_index_pair_label_array
     record_index_pair_list = []
     record_index_pair_label_list = []
-    for record_index_1, record_index_2 in itertools.combinations(range(index_array.size), 2):
+    for record_index_1, record_index_2 in itertools.combinations(
+            range(index_array.size), 2):
         record_index_pair_list.append((record_index_1, record_index_2))
-        record_index_pair_label_list.append(index_array[record_index_1] == index_array[record_index_2])
+        record_index_pair_label_list.append(
+            index_array[record_index_1] == index_array[record_index_2])
     record_index_pair_array = np.array(record_index_pair_list)
     record_index_pair_label_array = np.array(record_index_pair_label_list)
 
@@ -106,8 +117,11 @@ def get_record_map(index_array, true_false_ratio):
     selected_pair_label_false_indexes = np.random.choice(pair_label_false_indexes, \
                                                          1.0 * pair_label_true_indexes.size / true_false_ratio, \
                                                          replace=False)
-    selected_pair_label_indexes = np.hstack((pair_label_true_indexes, selected_pair_label_false_indexes))
-    return (record_index_pair_array[selected_pair_label_indexes, :], record_index_pair_label_array[selected_pair_label_indexes])
+    selected_pair_label_indexes = np.hstack(
+        (pair_label_true_indexes, selected_pair_label_false_indexes))
+    return (record_index_pair_array[selected_pair_label_indexes, :],
+            record_index_pair_label_array[selected_pair_label_indexes])
+
 
 def get_final_feature(feature_1, feature_2, metric_list):
     """Get the difference between two features.
@@ -130,12 +144,15 @@ def get_final_feature(feature_1, feature_2, metric_list):
 
     final_feature_list = []
     for metric in metric_list:
-        distance_matrix = pairwise_distances(np.vstack((feature_1, feature_2)), metric=metric)
+        distance_matrix = pairwise_distances(np.vstack((feature_1, feature_2)),
+                                             metric=metric)
         final_feature_list.append(distance_matrix[0, 1])
 
     return np.array(final_feature_list)
 
-def convert_to_final_data_set(image_feature_list, image_index_list, selected_indexes, true_false_ratio, metric_list):
+
+def convert_to_final_data_set(image_feature_list, image_index_list,
+                              selected_indexes, true_false_ratio, metric_list):
     """Convert to final data set.
     
     :param image_feature_list: the features of the images
@@ -158,7 +175,8 @@ def convert_to_final_data_set(image_feature_list, image_index_list, selected_ind
     selected_index_array = np.array(image_index_list)[selected_indexes]
 
     # Get record map
-    pair_array, pair_label_array = get_record_map(selected_index_array, true_false_ratio)
+    pair_array, pair_label_array = get_record_map(selected_index_array,
+                                                  true_false_ratio)
 
     # Retrieve the final feature
     final_feature_list = []
@@ -170,6 +188,7 @@ def convert_to_final_data_set(image_feature_list, image_index_list, selected_ind
         final_feature_list.append(final_feature)
 
     return (np.array(final_feature_list), pair_label_array)
+
 
 def write_prediction(testing_file_content, prediction, prediction_file_name):
     """Write prediction file to disk.
@@ -184,6 +203,12 @@ def write_prediction(testing_file_content, prediction, prediction_file_name):
     :rtype: None
     """
 
-    prediction_file_path = os.path.join(common.SUBMISSIONS_FOLDER_PATH, prediction_file_name)
-    prediction_file_content = pd.DataFrame({"Id": testing_file_content[:, 0], "Prediction": prediction})
-    prediction_file_content.to_csv(prediction_file_path, index=False, header=True)
+    prediction_file_path = os.path.join(common.SUBMISSIONS_FOLDER_PATH,
+                                        prediction_file_name)
+    prediction_file_content = pd.DataFrame({
+        "Id": testing_file_content[:, 0],
+        "Prediction": prediction
+    })
+    prediction_file_content.to_csv(prediction_file_path,
+                                   index=False,
+                                   header=True)

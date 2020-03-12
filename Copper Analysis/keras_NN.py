@@ -7,12 +7,14 @@ from keras.utils import np_utils
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 import numpy as np
 
+
 def preprocess_data(X, scaler=None):
     if not scaler:
         scaler = StandardScaler()
         scaler.fit(X)
     X = scaler.transform(X)
     return X, scaler
+
 
 def preprocess_labels(labels, encoder=None, categorical=True):
     if not encoder:
@@ -22,6 +24,7 @@ def preprocess_labels(labels, encoder=None, categorical=True):
     if categorical:
         y = np_utils.to_categorical(y)
     return y, encoder
+
 
 def generate_prediction(X_train, Y_train, X_test):
     # Encode labels with value between 0 and n_classes-1.
@@ -54,8 +57,13 @@ def generate_prediction(X_train, Y_train, X_test):
 
     print("Perform training phase ...")
     optimal_model_file_path = "/tmp/optimal_model.h5"
-    checkpointer = ModelCheckpoint(filepath=optimal_model_file_path, save_best_only=True)
-    model.fit(X_train, y, nb_epoch=100, callbacks=[checkpointer], validation_split=0.2)
+    checkpointer = ModelCheckpoint(filepath=optimal_model_file_path,
+                                   save_best_only=True)
+    model.fit(X_train,
+              y,
+              nb_epoch=100,
+              callbacks=[checkpointer],
+              validation_split=0.2)
 
     print("Load optimal coefficients ...")
     model.load_weights(optimal_model_file_path)

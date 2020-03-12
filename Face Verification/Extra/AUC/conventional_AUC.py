@@ -1,11 +1,12 @@
 import numpy as np
 import pylab
 
+
 def conventional_AUC():
     x = np.linspace(0, 1, num=200)
     y = np.zeros(x.shape)
     for index, single_x in enumerate(x):
-        y[index] = -(single_x - 1) ** 2 + 1
+        y[index] = -(single_x - 1)**2 + 1
 
     pylab.figure()
     pylab.plot(x, y, "yellowgreen", label="Curve A")
@@ -16,5 +17,6 @@ def conventional_AUC():
     pylab.ylabel("True Positive Rate", fontsize="large")
     pylab.title("Comparison between ROC curves")
     pylab.show()
+
 
 conventional_AUC()

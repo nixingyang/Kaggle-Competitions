@@ -20,10 +20,12 @@ ROW_NUM = 28
 COLUMN_NUM = 28
 BATCH_SIZE = 128
 
+
 def preprocess_images(X):
     X = np.reshape(X, (X.shape[0], ROW_NUM, COLUMN_NUM))
     X = np.expand_dims(X, axis=1)
     return X / 255
+
 
 def preprocess_labels(labels, encoder=None, categorical=True):
     if not encoder:
@@ -35,11 +37,16 @@ def preprocess_labels(labels, encoder=None, categorical=True):
         categorical_labels = np_utils.to_categorical(categorical_labels)
     return categorical_labels, encoder
 
+
 def init_model(class_num):
     model = Sequential()
 
-    model.add(Convolution2D(32, 3, 3, border_mode="same",
-                            input_shape=(1, ROW_NUM, COLUMN_NUM)))
+    model.add(
+        Convolution2D(32,
+                      3,
+                      3,
+                      border_mode="same",
+                      input_shape=(1, ROW_NUM, COLUMN_NUM)))
     model.add(PReLU())
     model.add(Convolution2D(32, 3, 3))
     model.add(PReLU())
@@ -67,9 +74,11 @@ def init_model(class_num):
     model.compile(loss="categorical_crossentropy", optimizer=optimizer)
     return model
 
+
 def run():
     print("Loading data ...")
-    X_train, Y_train, X_test, submission_file_content = preprocessing.load_data()
+    X_train, Y_train, X_test, submission_file_content = preprocessing.load_data(
+    )
 
     print("Performing conversion ...")
     X_train = preprocess_images(X_train)
@@ -84,10 +93,15 @@ def run():
             os.makedirs(MODEL_FOLDER_PATH)
 
         earlystopping_callback = EarlyStopping(patience=1)
-        modelcheckpoint_callback = ModelCheckpoint(OPTIMAL_MODEL_FILE_PATH, save_best_only=True)
-        model.fit(X_train, categorical_Y_train, batch_size=BATCH_SIZE, nb_epoch=1,
+        modelcheckpoint_callback = ModelCheckpoint(OPTIMAL_MODEL_FILE_PATH,
+                                                   save_best_only=True)
+        model.fit(X_train,
+                  categorical_Y_train,
+                  batch_size=BATCH_SIZE,
+                  nb_epoch=1,
                   callbacks=[earlystopping_callback, modelcheckpoint_callback],
-                  validation_split=0.2, show_accuracy=True)
+                  validation_split=0.2,
+                  show_accuracy=True)
 
     print("Loading the optimal model ...")
     model.load_weights(OPTIMAL_MODEL_FILE_PATH)
@@ -97,11 +111,14 @@ def run():
     prediction = encoder.inverse_transform(temp_predictions)
 
     print("Writing prediction to disk ...")
-    submission_file_name = "Aurora_{:.4f}_{:d}.csv".format(EarlyStopping.best, int(time.time()))
-    submission_file_content[preprocessing.LABEL_COLUMN_NAME_IN_SUBMISSION] = prediction
+    submission_file_name = "Aurora_{:.4f}_{:d}.csv".format(
+        EarlyStopping.best, int(time.time()))
+    submission_file_content[
+        preprocessing.LABEL_COLUMN_NAME_IN_SUBMISSION] = prediction
     submission_file_content.to_csv(submission_file_name, index=False)
 
     print("All done!")
+
 
 if __name__ == "__main__":
     run()

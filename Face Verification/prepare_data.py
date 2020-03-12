@@ -10,7 +10,9 @@ import pyprind
 import vgg_face
 
 # The extensions of the facial images
-FACIAL_IMAGE_EXTENSION_LIST = ["_bbox.jpg", "_open_face.jpg", "_congealingcomplex.jpg"]
+FACIAL_IMAGE_EXTENSION_LIST = [
+    "_bbox.jpg", "_open_face.jpg", "_congealingcomplex.jpg"
+]
 
 # The file names of the mean facial images
 MEAN_IMAGE_NAME_LIST = ["mean" + value for value in FACIAL_IMAGE_EXTENSION_LIST]
@@ -29,6 +31,7 @@ RETRIEVE_FEATURE_FUNC_LIST = [\
                               getattr(open_face, "retrieve_feature_by_open_face"), \
                               getattr(vgg_face, "retrieve_feature_by_vgg_face")]
 
+
 def get_image_paths_in_training_dataset():
     """Get image paths in the training data set.
     
@@ -39,27 +42,33 @@ def get_image_paths_in_training_dataset():
 
     original_image_path_list = []
     training_image_index_list = []
-    training_dataset_path = os.path.join(common.DATA_PATH, common.TRAINING_DATASET_NAME)
+    training_dataset_path = os.path.join(common.DATA_PATH,
+                                         common.TRAINING_DATASET_NAME)
     training_folder_name_list = os.listdir(training_dataset_path)
 
-    for training_folder_name_index, training_folder_name in enumerate(training_folder_name_list):
-        training_folder_path = os.path.join(training_dataset_path, training_folder_name)
+    for training_folder_name_index, training_folder_name in enumerate(
+            training_folder_name_list):
+        training_folder_path = os.path.join(training_dataset_path,
+                                            training_folder_name)
         if not os.path.isdir(training_folder_path):
             continue
 
-        bbox_file_path_rule = os.path.join(training_folder_path, "*" + common.BBOX_EXTENSION)
+        bbox_file_path_rule = os.path.join(training_folder_path,
+                                           "*" + common.BBOX_EXTENSION)
         for bbox_file_path in glob.glob(bbox_file_path_rule):
             index_end = len(bbox_file_path) - len(common.BBOX_EXTENSION)
             original_image_path = bbox_file_path[0:index_end]
 
             if not os.path.isfile(original_image_path):
-                print("{} does not exist!!!".format(os.path.basename(original_image_path)))
+                print("{} does not exist!!!".format(
+                    os.path.basename(original_image_path)))
                 continue
 
             original_image_path_list.append(original_image_path)
             training_image_index_list.append(training_folder_name_index)
 
     return (original_image_path_list, training_image_index_list)
+
 
 def get_image_paths_in_testing_dataset():
     """Get image paths in the testing data set.
@@ -69,15 +78,18 @@ def get_image_paths_in_testing_dataset():
     """
 
     original_image_path_list = []
-    testing_dataset_path = os.path.join(common.DATA_PATH, common.TESTING_DATASET_NAME)
+    testing_dataset_path = os.path.join(common.DATA_PATH,
+                                        common.TESTING_DATASET_NAME)
 
-    bbox_file_path_rule = os.path.join(testing_dataset_path, "*" + common.BBOX_EXTENSION)
+    bbox_file_path_rule = os.path.join(testing_dataset_path,
+                                       "*" + common.BBOX_EXTENSION)
     for bbox_file_path in glob.glob(bbox_file_path_rule):
         index_end = len(bbox_file_path) - len(common.BBOX_EXTENSION)
         original_image_path = bbox_file_path[0:index_end]
 
         if not os.path.isfile(original_image_path):
-            print("{} does not exist!!!".format(os.path.basename(original_image_path)))
+            print("{} does not exist!!!".format(
+                os.path.basename(original_image_path)))
             continue
 
         original_image_path_list.append(original_image_path)
@@ -103,7 +115,8 @@ def crop_facial_images_within_single_dataset(image_paths, facial_image_extension
     """
 
     # The sum of all images
-    image_sum = np.zeros((common.FACIAL_IMAGE_SIZE, common.FACIAL_IMAGE_SIZE, 3))
+    image_sum = np.zeros(
+        (common.FACIAL_IMAGE_SIZE, common.FACIAL_IMAGE_SIZE, 3))
     image_num = 0
     error_num = 0
 
@@ -137,7 +150,8 @@ def crop_facial_images_within_single_dataset(image_paths, facial_image_extension
     print(progress_bar)
 
     # Report the percentage of failures
-    print("Can't crop out faces from {:d}/{:d} images.".format(error_num, len(image_paths)))
+    print("Can't crop out faces from {:d}/{:d} images.".format(
+        error_num, len(image_paths)))
 
     # Save the mean facial image when necessary
     if mean_image_name is not None and image_num != 0:
@@ -148,7 +162,9 @@ def crop_facial_images_within_single_dataset(image_paths, facial_image_extension
             cv2.imwrite(mean_image_path, mean_image)
             print("Mean image saved.")
 
-def crop_facial_images(facial_image_extension, mean_image_name, retrieve_facial_image_func):
+
+def crop_facial_images(facial_image_extension, mean_image_name,
+                       retrieve_facial_image_func):
     """Crop facial images.
     
     :param facial_image_extension: the extension of the facial images
@@ -161,7 +177,8 @@ def crop_facial_images(facial_image_extension, mean_image_name, retrieve_facial_
     :rtype: None
     """
 
-    print("\nCropping facial images with facial_image_extension is {}.".format(facial_image_extension))
+    print("\nCropping facial images with facial_image_extension is {}.".format(
+        facial_image_extension))
 
     # Get image paths in the training and testing datasets
     image_paths_in_training_dataset, _ = get_image_paths_in_training_dataset()
@@ -176,7 +193,9 @@ def crop_facial_images(facial_image_extension, mean_image_name, retrieve_facial_
     crop_facial_images_within_single_dataset(image_paths_in_testing_dataset, facial_image_extension, \
                            None, retrieve_facial_image_func, True)
 
-def compute_features(facial_image_extension, feature_extension, retrieve_feature_func):
+
+def compute_features(facial_image_extension, feature_extension,
+                     retrieve_feature_func):
     """Compute features.
     
     :param facial_image_extension: the extension of the facial images
@@ -197,15 +216,21 @@ def compute_features(facial_image_extension, feature_extension, retrieve_feature
     image_paths_in_testing_dataset = get_image_paths_in_testing_dataset()
     image_paths = image_paths_in_training_dataset + image_paths_in_testing_dataset
 
-    facial_image_path_list = [image_path + facial_image_extension for image_path in image_paths]
-    feature_file_path_list = [facial_image_path + feature_extension for facial_image_path in facial_image_path_list]
+    facial_image_path_list = [
+        image_path + facial_image_extension for image_path in image_paths
+    ]
+    feature_file_path_list = [
+        facial_image_path + feature_extension
+        for facial_image_path in facial_image_path_list
+    ]
 
     error_num = 0
 
     # Add progress bar
     progress_bar = pyprind.ProgBar(len(facial_image_path_list), monitor=True)
 
-    for facial_image_path, feature_file_path in zip(facial_image_path_list, feature_file_path_list):
+    for facial_image_path, feature_file_path in zip(facial_image_path_list,
+                                                    feature_file_path_list):
         # Update progress bar before the computation
         progress_bar.update()
 
@@ -218,7 +243,9 @@ def compute_features(facial_image_extension, feature_extension, retrieve_feature
     print(progress_bar)
 
     # Report the percentage of failures
-    print("Can't retrieve feature from {:d}/{:d} images.".format(error_num, len(facial_image_path_list)))
+    print("Can't retrieve feature from {:d}/{:d} images.".format(
+        error_num, len(facial_image_path_list)))
+
 
 def run():
     # Initiate OpenFace Module
@@ -230,13 +257,16 @@ def run():
     # Generate facial images
     for facial_image_extension, mean_image_name, retrieve_facial_image_func in \
         zip(FACIAL_IMAGE_EXTENSION_LIST, MEAN_IMAGE_NAME_LIST, RETRIEVE_FACIAL_IMAGE_FUNC_LIST):
-        crop_facial_images(facial_image_extension, mean_image_name, retrieve_facial_image_func)
+        crop_facial_images(facial_image_extension, mean_image_name,
+                           retrieve_facial_image_func)
 
     # Generate features
     for facial_image_extension in FACIAL_IMAGE_EXTENSION_LIST:
         for feature_extension, retrieve_feature_func in \
             zip(FEATURE_EXTENSION_LIST, RETRIEVE_FEATURE_FUNC_LIST):
-            compute_features(facial_image_extension, feature_extension, retrieve_feature_func)
+            compute_features(facial_image_extension, feature_extension,
+                             retrieve_feature_func)
+
 
 if __name__ == "__main__":
     run()

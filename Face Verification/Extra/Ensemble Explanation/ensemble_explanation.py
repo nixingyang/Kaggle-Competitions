@@ -9,8 +9,11 @@ sys.path.append(script_folder_path)
 import common
 
 prediction_list = []
-for current_file_path in sorted(glob.glob(os.path.join(common.SUBMISSIONS_FOLDER_PATH, "Aurora_bbox_open_face_keras_Model_*.csv"))):
-# for current_file_path in sorted(glob.glob(os.path.join(common.SUBMISSIONS_FOLDER_PATH, "Aurora_bbox_open_face_sklearn_Model_*.csv"))):
+for current_file_path in sorted(
+        glob.glob(
+            os.path.join(common.SUBMISSIONS_FOLDER_PATH,
+                         "Aurora_bbox_open_face_keras_Model_*.csv"))):
+    # for current_file_path in sorted(glob.glob(os.path.join(common.SUBMISSIONS_FOLDER_PATH, "Aurora_bbox_open_face_sklearn_Model_*.csv"))):
     current_file_path = pd.read_csv(current_file_path)
     prediction_list.append(current_file_path["Prediction"].as_matrix())
 
@@ -24,5 +27,5 @@ for row_index in np.arange(distances.shape[0]):
     print("{:.5f} \\\\ \\hline".format(distances[row_index, -1]))
 
 values = np.reshape(distances, distances.size)
-is_zero = values < (0.1) ** 8
+is_zero = values < (0.1)**8
 print("{:.5f}".format(np.mean(values[np.logical_not(is_zero)])))
